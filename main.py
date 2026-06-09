@@ -3,13 +3,18 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import json
-
+from pathlib import Path
 app = FastAPI()
 
+BASE_DIR = Path(__file__).resolve().parent
 
+"""
 app.mount("/ui", StaticFiles(directory="ui"), name="ui")
 templates = Jinja2Templates(directory="ui")
+"""
 
+app.mount("/ui", StaticFiles(directory=str(BASE_DIR / "ui")), name="ui")
+templates = Jinja2Templates(directory=str(BASE_DIR / "ui"))
 
 active_connections: list[WebSocket] = []
 
