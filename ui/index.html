@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucide Chat</title>
+    <link rel="icon" type="image/x-icon" href="/ui/static/icon.ico">
+    <link rel="stylesheet" href="/ui/assets/styles.css">
+</head>
+<body>
+
+    <div class="chat-container">
+        <header class="chat-header">
+            <div class="avatar">
+                <img src="/ui/static/chat-background.jpg" alt="Logo Chat" onerror="this.style.display='none'">
+            </div>
+            <div class="chat-info">
+                <h2>Public Room</h2>
+                <p>Online now</p>
+            </div>
+        </header>
+
+        <main class="chat-messages" id="chatMessages">
+            <li class="message received">
+                <div class="bubble">
+                    <span class="text">Welcome to Lucide Chat!, all messages will be deleted when the server restarts.</span>
+                </div>
+            </li>
+        </main>
+
+        <form class="chat-input-area" id="chatForm" onsubmit="sendMessage(event)">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Escribe un mensaje aquí..." 
+                autocomplete="off" 
+                required
+            />
+            <button type="submit">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                </svg>
+            </button>
+        </form>
+    </div>
+
+    <script>
+       
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+        const ws = new WebSocket(wsUrl);
+
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+
+       
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            
+          
+            const messageElement = document.createElement('li');
+            messageElement.classList.add('message');
+            
+            if (data.isMe) {
+                messageElement.classList.add('sent');
+            } else {
+                messageElement.classList.add('received');
+            }
+
+            messageElement.innerHTML = `
+                <div class="bubble">
+                    <span class="text">${escapeHTML(data.message)}</span>
+                </div>
+            `;
+
+            chatMessages.appendChild(messageElement);
+            
+          
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+       
+        function sendMessage(event) {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+            if (message) {
+                ws.send(message);
+                messageInput.value = '';
+            }
+        }
+
+      
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+</html>
